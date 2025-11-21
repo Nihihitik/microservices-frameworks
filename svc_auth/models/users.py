@@ -1,23 +1,42 @@
-from pydantic import BaseModel, Field, EmailStr
-from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from enum import Enum
+from uuid import uuid4
+
+from sqlalchemy import Boolean, Column, DateTime, Enum as SAEnum, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import declarative_base
 
 
 class Role(str, Enum):
     """Роли пользователей в системе"""
+
     ENGINEER = "engineer"  # Инженер
     ADMIN = "admin"  # Администратор
     SUPERVISOR = "supervisor"  # Руководитель
     CUSTOMER = "customer"  # Заказчик
 
 
-class Users(BaseModel):
-    id: UUID = Field(default_factory=uuid4, description="Уникальный идентификатор пользователя")
-    full_name: str = Field(..., min_length=3, max_length=50, description="Полное имя пользователя")
-    email: EmailStr = Field(..., description="Email адрес пользователя")
-    hash_password: str = Field(..., min_length=3, max_length=32, description="Хешированный пароль пользователя")
-    role: Role = Field(..., description="Роль пользователя в системе")
-    is_active: bool = Field(default=True, description="Флаг активности пользователя")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Дата и время создания записи")
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Дата и время последнего обновления записи")
+Base = declarative_base()
+
+
+class Users(Base):
+    """SQLAlchemy-модель таблицы пользователей"""
+
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    full_name = Column(String(50), nullable=False)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    hash_password = Column(String(128), nullable=False)
+    role = Column(SAEnum(Role, name="role"), nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )

@@ -1,13 +1,23 @@
-from pydantic import BaseModel, Field
-from uuid import UUID, uuid4
 from datetime import datetime, UTC
+from uuid import uuid4
+
+from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
+from .defects import Base
 
 
-class Attachment(BaseModel):
-    """Модель вложения к дефекту"""
-    id: UUID = Field(default_factory=uuid4, description="Уникальный идентификатор вложения")
-    defect_id: UUID = Field(..., description="ID дефекта, к которому относится вложение")
-    file_url: str = Field(..., description="Путь до файла (S3/локальное хранилище и т.п.)")
-    file_name: str = Field(..., description="Имя файла")
-    uploaded_by_id: UUID = Field(..., description="ID пользователя, загрузившего файл")
-    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC), description="Дата и время загрузки файла")
+class Attachment(Base):
+    """SQLAlchemy-модель таблицы вложений к дефекту"""
+
+    __tablename__ = "attachments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    defect_id = Column(UUID(as_uuid=True), ForeignKey("defects.id", ondelete="CASCADE"), nullable=False, index=True)
+    file_url = Column(String(1024), nullable=False)
+    file_name = Column(String(255), nullable=False)
+    uploaded_by_id = Column(UUID(as_uuid=True), nullable=False)
+    uploaded_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+    defect = relationship("Defects", backref="attachments")

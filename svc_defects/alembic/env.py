@@ -4,6 +4,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from models.defects import Base
+
 config = context.config
 
 if config.config_file_name is not None:
@@ -13,8 +15,8 @@ url = os.getenv("DATABASE_URL")
 if url:
     config.set_main_option("sqlalchemy.url", url)
 
-# When SQLAlchemy models appear, import Base and assign Base.metadata here
-target_metadata = None
+# Используем metadata SQLAlchemy-моделей дефектов и связанных сущностей
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

@@ -1,11 +1,15 @@
-from pydantic import BaseModel, Field
-from uuid import UUID, uuid4
-from datetime import datetime, UTC, date
+from datetime import date, datetime, UTC
 from enum import Enum
+from uuid import uuid4
+
+from sqlalchemy import Column, Date, DateTime, Enum as SAEnum, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import declarative_base
 
 
 class DefectPriority(str, Enum):
     """Приоритеты дефектов"""
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -14,6 +18,7 @@ class DefectPriority(str, Enum):
 
 class DefectStatus(str, Enum):
     """Статусы дефектов"""
+
     NEW = "NEW"
     IN_PROGRESS = "IN_PROGRESS"
     ON_REVIEW = "ON_REVIEW"
@@ -21,16 +26,23 @@ class DefectStatus(str, Enum):
     CANCELED = "CANCELED"
 
 
-class Defects(BaseModel):
-    id: UUID = Field(default_factory=uuid4, description="Уникальный идентификатор дефекта")
-    project_id: UUID = Field(..., description="ID проекта, к которому относится дефект")
-    title: str = Field(..., description="Заголовок дефекта")
-    description: str = Field(..., description="Подробное описание дефекта")
-    priority: DefectPriority = Field(..., description="Приоритет дефекта")
-    status: DefectStatus = Field(..., description="Статус дефекта")
-    author_id: UUID = Field(..., description="ID пользователя, создавшего дефект")
-    assignee_id: UUID | None = Field(None, description="ID назначенного исполнителя дефекта")
-    due_date: date | None = Field(None, description="Срок устранения дефекта")
-    location: str | None = Field(None, description="Зона/помещение на объекте, где обнаружен дефект")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), description="Дата и время создания записи")
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC), description="Дата и время последнего обновления записи")
+Base = declarative_base()
+
+
+class Defects(Base):
+    """SQLAlchemy-модель таблицы дефектов"""
+
+    __tablename__ = "defects"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    project_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    priority = Column(SAEnum(DefectPriority, name="defect_priority"), nullable=False)
+    status = Column(SAEnum(DefectStatus, name="defect_status"), nullable=False)
+    author_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    assignee_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    due_date = Column(Date, nullable=True)
+    location = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))

@@ -1,14 +1,24 @@
-from pydantic import BaseModel, Field
-from uuid import UUID, uuid4
 from datetime import datetime, UTC
+from uuid import uuid4
+
+from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
+from .defects import Base
 
 
-class DefectHistory(BaseModel):
-    """Модель истории изменений дефекта"""
-    id: UUID = Field(default_factory=uuid4, description="Уникальный идентификатор записи истории")
-    defect_id: UUID = Field(..., description="ID дефекта, для которого зафиксировано изменение")
-    changed_by_id: UUID = Field(..., description="ID пользователя, внесшего изменение")
-    field_name: str = Field(..., description="Название измененного поля (например: status, assignee_id, priority)")
-    old_value: str | None = Field(None, description="Старое значение поля")
-    new_value: str | None = Field(None, description="Новое значение поля")
-    changed_at: datetime = Field(default_factory=lambda: datetime.now(UTC), description="Дата и время изменения")
+class DefectHistory(Base):
+    """SQLAlchemy-модель таблицы истории изменений дефекта"""
+
+    __tablename__ = "defect_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    defect_id = Column(UUID(as_uuid=True), ForeignKey("defects.id", ondelete="CASCADE"), nullable=False, index=True)
+    changed_by_id = Column(UUID(as_uuid=True), nullable=False)
+    field_name = Column(String(100), nullable=False)
+    old_value = Column(String(255), nullable=True)
+    new_value = Column(String(255), nullable=True)
+    changed_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+    defect = relationship("Defects", backref="history_entries")
