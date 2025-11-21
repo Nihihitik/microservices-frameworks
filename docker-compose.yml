@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: svc_gateway/Dockerfile
+    environment:
+      - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - svc_auth
+      - svc_projects
+      - svc_defects
+      - svc_reports
+
+  svc_auth:
+    build:
+      context: .
+      dockerfile: svc_auth/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://auth_user:auth_password@auth-db:5432/auth_db
+    ports:
+      - "8001:8001"
+    depends_on:
+      - auth-db
+
+  svc_projects:
+    build:
+      context: .
+      dockerfile: svc_projects/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://projects_user:projects_password@projects-db:5432/projects_db
+    ports:
+      - "8002:8002"
+    depends_on:
+      - projects-db
+
+  svc_defects:
+    build:
+      context: .
+      dockerfile: svc_defects/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://defects_user:defects_password@defects-db:5432/defects_db
+    ports:
+      - "8003:8003"
+    depends_on:
+      - defects-db
+
+  svc_reports:
+    build:
+      context: .
+      dockerfile: svc_reports/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://reports_user:reports_password@reports-db:5432/reports_db
+    ports:
+      - "8004:8004"
+    depends_on:
+      - reports-db
+
+  auth-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=auth_db
+      - POSTGRES_USER=auth_user
+      - POSTGRES_PASSWORD=auth_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+  projects-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=projects_db
+      - POSTGRES_USER=projects_user
+      - POSTGRES_PASSWORD=projects_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - projects-db-data:/var/lib/postgresql/data
+
+  defects-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=defects_db
+      - POSTGRES_USER=defects_user
+      - POSTGRES_PASSWORD=defects_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - defects-db-data:/var/lib/postgresql/data
+
+  reports-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=reports_db
+      - POSTGRES_USER=reports_user
+      - POSTGRES_PASSWORD=reports_password
+    ports:
+      - "5436:5432"
+    volumes:
+      - reports-db-data:/var/lib/postgresql/data
+
+volumes:
+  auth-db-data:
+  projects-db-data:
+  defects-db-data:
+  reports-db-data:
