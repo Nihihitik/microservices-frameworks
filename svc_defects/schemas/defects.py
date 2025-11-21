@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from .models.defects import DefectPriority, DefectStatus
+from models.defects import DefectPriority, DefectStatus
 
 try:  # Pydantic v2
     from pydantic import ConfigDict

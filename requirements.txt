@@ -5,3 +5,7 @@ alembic
 psycopg2-binary
 python-dotenv
 pydantic
+pydantic-settings
+passlib[bcrypt]
+PyJWT
+httpx

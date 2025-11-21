@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from .models.projects import ProjectStage, ProjectStatus
+from models.projects import ProjectStage, ProjectStatus
 
 try:  # Pydantic v2
     from pydantic import ConfigDict

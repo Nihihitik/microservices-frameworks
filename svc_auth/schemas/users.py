@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr
 
-from .models.users import Role
+from models.users import Role
 
 try:  # Pydantic v2
     from pydantic import ConfigDict
