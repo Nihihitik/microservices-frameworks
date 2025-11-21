@@ -5,9 +5,18 @@ services:
     build:
       context: .
       dockerfile: svc_gateway/Dockerfile
+    env_file:
+      - .env
     environment:
-      - GATEWAY_HOST=0.0.0.0
-      - GATEWAY_PORT=8000
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - PROJECTS_SERVICE_URL=${PROJECTS_SERVICE_URL}
+      - DEFECTS_SERVICE_URL=${DEFECTS_SERVICE_URL}
+      - REPORTS_SERVICE_URL=${REPORTS_SERVICE_URL}
     ports:
       - "8000:8000"
     depends_on:
@@ -20,8 +29,15 @@ services:
     build:
       context: .
       dockerfile: svc_auth/Dockerfile
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql+psycopg2://auth_user:auth_password@auth-db:5432/auth_db
+      - DATABASE_URL=postgresql://${AUTH_DB_USER}:${AUTH_DB_PASSWORD}@${AUTH_DB_HOST}:${AUTH_DB_PORT}/${AUTH_DB_NAME}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8001
     ports:
       - "8001:8001"
     depends_on:
@@ -31,8 +47,13 @@ services:
     build:
       context: .
       dockerfile: svc_projects/Dockerfile
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql+psycopg2://projects_user:projects_password@projects-db:5432/projects_db
+      - DATABASE_URL=postgresql://${PROJECTS_DB_USER}:${PROJECTS_DB_PASSWORD}@${PROJECTS_DB_HOST}:${PROJECTS_DB_PORT}/${PROJECTS_DB_NAME}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8002
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
     ports:
       - "8002:8002"
     depends_on:
@@ -42,8 +63,14 @@ services:
     build:
       context: .
       dockerfile: svc_defects/Dockerfile
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql+psycopg2://defects_user:defects_password@defects-db:5432/defects_db
+      - DATABASE_URL=postgresql://${DEFECTS_DB_USER}:${DEFECTS_DB_PASSWORD}@${DEFECTS_DB_HOST}:${DEFECTS_DB_PORT}/${DEFECTS_DB_NAME}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8003
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - PROJECTS_SERVICE_URL=${PROJECTS_SERVICE_URL}
     ports:
       - "8003:8003"
     depends_on:
@@ -53,8 +80,15 @@ services:
     build:
       context: .
       dockerfile: svc_reports/Dockerfile
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql+psycopg2://reports_user:reports_password@reports-db:5432/reports_db
+      - DATABASE_URL=postgresql://${REPORTS_DB_USER}:${REPORTS_DB_PASSWORD}@${REPORTS_DB_HOST}:${REPORTS_DB_PORT}/${REPORTS_DB_NAME}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8004
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - PROJECTS_SERVICE_URL=${PROJECTS_SERVICE_URL}
+      - DEFECTS_SERVICE_URL=${DEFECTS_SERVICE_URL}
     ports:
       - "8004:8004"
     depends_on:
@@ -63,9 +97,9 @@ services:
   auth-db:
     image: postgres:16
     environment:
-      - POSTGRES_DB=auth_db
-      - POSTGRES_USER=auth_user
-      - POSTGRES_PASSWORD=auth_password
+      - POSTGRES_DB=${AUTH_DB_NAME}
+      - POSTGRES_USER=${AUTH_DB_USER}
+      - POSTGRES_PASSWORD=${AUTH_DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
@@ -74,9 +108,9 @@ services:
   projects-db:
     image: postgres:16
     environment:
-      - POSTGRES_DB=projects_db
-      - POSTGRES_USER=projects_user
-      - POSTGRES_PASSWORD=projects_password
+      - POSTGRES_DB=${PROJECTS_DB_NAME}
+      - POSTGRES_USER=${PROJECTS_DB_USER}
+      - POSTGRES_PASSWORD=${PROJECTS_DB_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
@@ -85,9 +119,9 @@ services:
   defects-db:
     image: postgres:16
     environment:
-      - POSTGRES_DB=defects_db
-      - POSTGRES_USER=defects_user
-      - POSTGRES_PASSWORD=defects_password
+      - POSTGRES_DB=${DEFECTS_DB_NAME}
+      - POSTGRES_USER=${DEFECTS_DB_USER}
+      - POSTGRES_PASSWORD=${DEFECTS_DB_PASSWORD}
     ports:
       - "5435:5432"
     volumes:
@@ -96,9 +130,9 @@ services:
   reports-db:
     image: postgres:16
     environment:
-      - POSTGRES_DB=reports_db
-      - POSTGRES_USER=reports_user
-      - POSTGRES_PASSWORD=reports_password
+      - POSTGRES_DB=${REPORTS_DB_NAME}
+      - POSTGRES_USER=${REPORTS_DB_USER}
+      - POSTGRES_PASSWORD=${REPORTS_DB_PASSWORD}
     ports:
       - "5436:5432"
     volumes:
