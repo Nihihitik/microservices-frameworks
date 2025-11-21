@@ -10,18 +10,34 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Enums
-    defect_priority = sa.Enum("LOW", "MEDIUM", "HIGH", "CRITICAL", name="defect_priority")
-    defect_status = sa.Enum(
+    # Enums - проверяем существование перед созданием
+    connection = op.get_bind()
+
+    # Проверяем и создаем defect_priority если не существует
+    result = connection.execute(sa.text(
+        "SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'defect_priority')"
+    )).scalar()
+    if not result:
+        op.execute("CREATE TYPE defect_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')")
+
+    # Проверяем и создаем defect_status если не существует
+    result = connection.execute(sa.text(
+        "SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'defect_status')"
+    )).scalar()
+    if not result:
+        op.execute("CREATE TYPE defect_status AS ENUM ('NEW', 'IN_PROGRESS', 'ON_REVIEW', 'CLOSED', 'CANCELED')")
+
+    # Используем create_type=False, чтобы SQLAlchemy не пытался создавать типы автоматически
+    defect_priority = postgresql.ENUM("LOW", "MEDIUM", "HIGH", "CRITICAL", name="defect_priority", create_type=False)
+    defect_status = postgresql.ENUM(
         "NEW",
         "IN_PROGRESS",
         "ON_REVIEW",
         "CLOSED",
         "CANCELED",
         name="defect_status",
+        create_type=False,
     )
-    defect_priority.create(op.get_bind(), checkfirst=True)
-    defect_status.create(op.get_bind(), checkfirst=True)
 
     # defects
     op.create_table(
