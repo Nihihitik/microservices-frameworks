@@ -3,8 +3,8 @@ version: "3.9"
 services:
   gateway:
     build:
-      context: .
-      dockerfile: svc_gateway/Dockerfile
+      context: ./svc_gateway
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -27,8 +27,8 @@ services:
 
   svc_auth:
     build:
-      context: .
-      dockerfile: svc_auth/Dockerfile
+      context: ./svc_auth
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -45,8 +45,8 @@ services:
 
   svc_projects:
     build:
-      context: .
-      dockerfile: svc_projects/Dockerfile
+      context: ./svc_projects
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -61,8 +61,8 @@ services:
 
   svc_defects:
     build:
-      context: .
-      dockerfile: svc_defects/Dockerfile
+      context: ./svc_defects
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
@@ -78,8 +78,8 @@ services:
 
   svc_reports:
     build:
-      context: .
-      dockerfile: svc_reports/Dockerfile
+      context: ./svc_reports
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:

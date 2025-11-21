@@ -11,4 +11,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8004
 
-CMD ["uvicorn", "svc_reports.main:app", "--host", "0.0.0.0", "--port", "8004"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
