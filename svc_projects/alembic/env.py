@@ -9,6 +9,7 @@ from sqlalchemy import engine_from_config, pool
 # Добавляем путь к директории сервиса в sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from core.config import settings
 from models.projects import Base
 
 config = context.config
@@ -16,9 +17,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-url = os.getenv("DATABASE_URL")
-if url:
-    config.set_main_option("sqlalchemy.url", url)
+url = os.getenv("DATABASE_URL") or settings.database_url
+config.set_main_option("sqlalchemy.url", url)
 
 # Используем metadata SQLAlchemy-моделей проектов
 target_metadata = Base.metadata
