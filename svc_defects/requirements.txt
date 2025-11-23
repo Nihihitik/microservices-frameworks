@@ -10,3 +10,4 @@ pydantic[email]
 passlib[bcrypt]
 PyJWT
 httpx
+python-multipart
