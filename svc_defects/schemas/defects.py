@@ -95,23 +95,27 @@ class CommentRead(CommentBase):
 class AttachmentBase(BaseModel):
     """Базовая схема вложения."""
 
-    file_url: str
     file_name: str
 
 
-class AttachmentCreate(AttachmentBase):
-    """Схема создания вложения."""
+class AttachmentCreate(BaseModel):
+    """Схема создания вложения.
+
+    Для загрузки файла через multipart/form-data.
+    Не используется напрямую - файл загружается через UploadFile в FastAPI.
+    """
 
     defect_id: UUID
-    uploaded_by_id: UUID
 
 
 class AttachmentRead(AttachmentBase):
-    """Схема чтения вложения."""
+    """Схема чтения вложения (без бинарных данных)."""
 
     id: UUID
     defect_id: UUID
     uploaded_by_id: UUID
+    file_size: int
+    content_type: str
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
