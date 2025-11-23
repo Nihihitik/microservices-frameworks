@@ -1,12 +1,9 @@
 fastapi
 uvicorn[standard]
-SQLAlchemy
-alembic
-psycopg2-binary
 python-dotenv
 pydantic
 pydantic-settings
-pydantic[email]
-passlib[bcrypt]
 PyJWT
 httpx
+pandas
+openpyxl
