@@ -1,0 +1,29 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application settings from .env file"""
+
+    # JWT (for token validation from svc_auth)
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+
+    # Application
+    APP_HOST: str = "0.0.0.0"
+    APP_PORT: int = 8000
+
+    # External Services
+    AUTH_SERVICE_URL: str
+    PROJECTS_SERVICE_URL: str
+    DEFECTS_SERVICE_URL: str
+    REPORTS_SERVICE_URL: str
+
+    # CORS
+    ALLOWED_ORIGINS: str = "*"
+
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=True, extra="ignore"
+    )
+
+
+settings = Settings()
