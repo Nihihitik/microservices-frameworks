@@ -1,8 +1,11 @@
+from pathlib import Path
 from typing import Optional
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -39,7 +42,7 @@ class Settings(BaseSettings):
     PROJECTS_SERVICE_URL: str
 
     model_config = SettingsConfigDict(
-        env_file=".env", case_sensitive=True, extra="ignore"
+        env_file=str(BASE_DIR / ".env"), case_sensitive=True, extra="ignore"
     )
 
     @property
