@@ -1,4 +1,9 @@
+import os
+
 from passlib.context import CryptContext
+
+os.environ.setdefault("PASSLIB_BCRYPT_TRUNCATE_ERROR", "1")
+os.environ.setdefault("PASSLIB_BCRYPT_DETECT_WRAPAROUND", "0")
 
 # Контекст для хеширования паролей (bcrypt)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

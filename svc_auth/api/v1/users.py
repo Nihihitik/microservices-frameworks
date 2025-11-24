@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -78,8 +79,8 @@ def update_current_user_profile(
 def list_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    role: Role | None = None,
-    is_active: bool | None = None,
+    role: Optional[Role] = None,
+    is_active: Optional[bool] = None,
     current_user: Users = Depends(require_role(Role.ADMIN, Role.SUPERVISOR)),
     db: Session = Depends(get_db),
 ):
