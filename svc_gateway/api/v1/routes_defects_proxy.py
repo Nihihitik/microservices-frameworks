@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 
 from api.deps import get_current_user_from_token
 from core.config import settings
+from core.http import request_with_retry
 
 router = APIRouter(tags=["Defects Proxy"])
 
@@ -45,15 +46,15 @@ async def proxy_to_defects(
     target_url = f"{settings.DEFECTS_SERVICE_URL}{path}"
 
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.request(
-                method=method,
-                url=target_url,
-                headers=headers,
-                json=body,
-                params=request.query_params,
-            )
-            return response.json()
+        response = await request_with_retry(
+            method=method,
+            url=target_url,
+            headers=headers,
+            json=body,
+            params=request.query_params,
+            timeout=5.0,
+        )
+        return response.json()
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -260,15 +261,16 @@ async def upload_attachment_proxy(
     target_url = f"{settings.DEFECTS_SERVICE_URL}/api/v1/attachments/"
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:  # Longer timeout for file upload
-            files = {"file": (file.filename, await file.read(), file.content_type)}
-            response = await client.post(
-                url=target_url,
-                headers=headers,
-                files=files,
-                params={"defect_id": str(defect_id)},
-            )
-            return response.json()
+        files = {"file": (file.filename, await file.read(), file.content_type)}
+        response = await request_with_retry(
+            method="POST",
+            url=target_url,
+            headers=headers,
+            files=files,
+            params={"defect_id": str(defect_id)},
+            timeout=10.0,
+        )
+        return response.json()
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -322,21 +324,25 @@ async def download_attachment_proxy(
     target_url = f"{settings.DEFECTS_SERVICE_URL}/api/v1/attachments/{attachment_id}/download"
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:  # Longer timeout for file download
-            response = await client.get(url=target_url, headers=headers)
+        response = await request_with_retry(
+            method="GET",
+            url=target_url,
+            headers=headers,
+            timeout=10.0,
+        )
 
-            if response.status_code != 200:
-                # If error, return JSON error response
-                return response.json()
+        if response.status_code != 200:
+            return response.json()
 
-            # Stream the file content
-            return StreamingResponse(
-                content=iter([response.content]),
-                media_type=response.headers.get("Content-Type", "application/octet-stream"),
-                headers={
-                    "Content-Disposition": response.headers.get("Content-Disposition", "attachment"),
-                },
-            )
+        return StreamingResponse(
+            content=iter([response.content]),
+            media_type=response.headers.get("Content-Type", "application/octet-stream"),
+            headers={
+                "Content-Disposition": response.headers.get(
+                    "Content-Disposition", "attachment"
+                ),
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,

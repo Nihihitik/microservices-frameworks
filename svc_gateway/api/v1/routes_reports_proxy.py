@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from api.deps import get_current_user_from_token
 from core.config import settings
+from core.http import request_with_retry
 
 router = APIRouter(prefix="/reports", tags=["Reports Proxy"])
 
@@ -44,14 +45,14 @@ async def proxy_to_reports(
     target_url = f"{settings.REPORTS_SERVICE_URL}{path}"
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:  # Longer timeout for reports
-            response = await client.request(
-                method=method,
-                url=target_url,
-                headers=headers,
-                params=request.query_params,
-            )
-            return response.json()
+        response = await request_with_retry(
+            method=method,
+            url=target_url,
+            headers=headers,
+            params=request.query_params,
+            timeout=30.0,
+        )
+        return response.json()
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -150,26 +151,27 @@ async def export_report_proxy(
     target_url = f"{settings.REPORTS_SERVICE_URL}/api/v1/reports/export"
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:  # Longer timeout for export
-            response = await client.get(
-                url=target_url,
-                headers=headers,
-                params=request.query_params,
-            )
+        response = await request_with_retry(
+            method="GET",
+            url=target_url,
+            headers=headers,
+            params=request.query_params,
+            timeout=30.0,
+        )
 
-            # If error response (not 200), return JSON error
-            if response.status_code != 200:
-                return response.json()
+        if response.status_code != 200:
+            return response.json()
 
-            # Stream the file content
-            content_type = response.headers.get("Content-Type", "application/octet-stream")
-            content_disposition = response.headers.get("Content-Disposition", "attachment")
+        content_type = response.headers.get("Content-Type", "application/octet-stream")
+        content_disposition = response.headers.get(
+            "Content-Disposition", "attachment"
+        )
 
-            return StreamingResponse(
-                content=iter([response.content]),
-                media_type=content_type,
-                headers={"Content-Disposition": content_disposition},
-            )
+        return StreamingResponse(
+            content=iter([response.content]),
+            media_type=content_type,
+            headers={"Content-Disposition": content_disposition},
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,

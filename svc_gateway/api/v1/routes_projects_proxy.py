@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from api.deps import get_current_user_from_token
 from core.config import settings
+from core.http import request_with_retry
 
 router = APIRouter(prefix="/projects", tags=["Projects Proxy"])
 
@@ -44,15 +45,15 @@ async def proxy_to_projects(
     target_url = f"{settings.PROJECTS_SERVICE_URL}{path}"
 
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.request(
-                method=method,
-                url=target_url,
-                headers=headers,
-                json=body,
-                params=request.query_params,
-            )
-            return response.json()
+        response = await request_with_retry(
+            method=method,
+            url=target_url,
+            headers=headers,
+            json=body,
+            params=request.query_params,
+            timeout=5.0,
+        )
+        return response.json()
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
