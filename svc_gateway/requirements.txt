@@ -6,3 +6,6 @@ pydantic-settings
 PyJWT
 httpx
 python-multipart
+pytest
+pytest-asyncio
+pytest-cov

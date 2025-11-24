@@ -7,3 +7,6 @@ PyJWT
 httpx
 pandas
 openpyxl
+pytest
+pytest-asyncio
+pytest-cov

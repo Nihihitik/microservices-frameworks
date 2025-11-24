@@ -8,6 +8,10 @@ pydantic
 pydantic-settings
 pydantic[email]
 passlib[bcrypt]
+bcrypt<5.0
 PyJWT
 httpx
 python-multipart
+pytest
+pytest-asyncio
+pytest-cov
